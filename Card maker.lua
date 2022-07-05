@@ -1,7 +1,7 @@
 monitor = peripheral.wrap("right")
 diskdrive = peripheral.wrap("bottom")
 os.loadAPI("encryptApi")
-EncPassword = "*****"
+EncPassword = "Qx7bz7qCpamJcbUqgSE4" --I know you can see this and i do not care
 ownerdiscord = "Kennu#8992"
 
 term.clear()
