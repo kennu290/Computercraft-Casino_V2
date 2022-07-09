@@ -1,4 +1,4 @@
-monitor = peripheral.wrap("right")
+monitor = peripheral.wrap("back")
 diskdrive = peripheral.wrap("bottom")
 os.loadAPI("encryptApi")
 EncPassword = "Qx7bz7qCpamJcbUqgSE4" --I know you can see this and i do not care
