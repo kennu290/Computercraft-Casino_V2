@@ -1,0 +1,15 @@
+{
+  "name": "computercraft-casino_v2",
+  "version": "1.0.0",
+  "description": "Back-end for my computercraft casino v2",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "author": "Ken-oleander Niin <kenoleander@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "express3-handlebars": "^0.5.2"
+  }
+}
