@@ -4,6 +4,9 @@ body {
   background-color: #353535;
 }
 
+p {
+  color: white;
+}
 
 .sidebar {
     background: #494949;
@@ -37,8 +40,8 @@ body {
 }
   */
 .grid-col {
-    background-color: #fff;
-    border: 1px solid #ccc;
+    background-color: #ffffff;
+    border: 1px solid #cccc;
     padding: 10px;
     text-align: center;
 }
@@ -62,3 +65,28 @@ body {
     background-color: #4c4c4c;
 }
   
+
+#filterBar{
+  border-width: 0;
+  background-color: #4c4c4c;
+  color: #ffffff;
+}
+
+#filterBar::placeholder {
+  color: #ffffff;
+}
+
+#RefreshDataBtn{
+  width: 90%;
+  background-color: #494949;
+  color: #D9D9D9;
+  border: none;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  margin: 10px 0px;
+  border-radius: 0px;
+}
