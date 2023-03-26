@@ -2,8 +2,10 @@ var port = process.env.port || 80;
 var express = require('express');
 var handlebars = require('express3-handlebars');
 var bodyParser = require('body-parser');
+var crypto = require('crypto');
 var path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
 var application = express();
 
 var userCount = 0;
@@ -17,6 +19,18 @@ application.use(bodyParser.json()); // add this line to parse JSON request body
 
 application.engine('handlebars', handlebars({ defaultLayout: 'main' }));
 
+
+function verifyHash(hash){
+  var rehashed = crypto.createHash('sha256').update(hash).digest('hex');
+  const contents = fs.readFileSync('hash.txt', 'utf-8');
+  // use the contents as the comparing hash value
+  const hashValue = contents.trim();
+  if (rehashed === hashValue){
+    return true;
+  }else{
+    return false;
+  }
+}
 
 application.get('/api/data/overview', function(req, res) {
   var data = {
@@ -43,6 +57,19 @@ application.get('/api/data/users', function(req, res) {
   res.status(200).send(data);
 });
 
+application.post('/api/dash/login', function(req, res) {
+  console.log("Received login request!");
+  const { hash } = req.body; // Retrieve the hash value from the request body
+  if (verifyHash(hash))
+  {
+    var data = {
+      token: hash,
+    };  
+    res.status(200).send(data);
+  }else{
+    res.status(401).send({})
+  }
+});
 
 
 application.post('/api/user', function(req, res) {

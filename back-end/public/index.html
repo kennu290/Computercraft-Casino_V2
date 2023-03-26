@@ -14,10 +14,6 @@
           
     </div> -->
     <div class="container-fluid" id="mainContent">
-    <!-- Button trigger modal -->
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModalBackdrop">
-      Launch static backdrop modal
-    </button>
 
     <!-- Modal -->
     <div class="modal fade" id="loginModalBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="loginModalBackdropLabel" aria-hidden="true">
@@ -34,11 +30,14 @@
               </div>
               <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" class="form-control" id="password" placeholder="Password">
+                <input type="password" class="form-control" id="loginPassword" placeholder="Password">
               </div>
             </form>
           </div>
           <div class="modal-footer">
+            <div class="alert alert-danger  d-none" id="loginAlert" role="alert">
+              Incorrect username or password. Please try again.
+            </div>            
             <button type="button" class="btn btn-primary" onclick="login()">Login</button>
           </div>
         </div>

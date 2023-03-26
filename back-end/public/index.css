@@ -19,7 +19,11 @@ p {
     padding-top: 2em;
     border-style: none solid none none;
     border-width: thin;
-    height: 100vh;
+    min-height: 100vh;
+  }
+  .sidebar > .row {
+    position: sticky;
+    top: 0;
   }
 
   .card {

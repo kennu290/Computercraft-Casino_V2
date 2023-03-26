@@ -1,5 +1,3 @@
-const { parse } = require("uuid");
-
 var userCount;
 var wins;
 var losses;
@@ -10,6 +8,19 @@ var lastSelectedButton
 
 window.onload = function() {
     console.log("Site loaded!")
+    //Checking login status.
+    if (sessionStorage.getItem('loggedIn') !== 'true') {
+        if (window.location.pathname == '/'){
+            var logInModal = new bootstrap.Modal(document.getElementById('loginModalBackdrop'), {
+            keyboard: false
+            });
+        
+            logInModal.show();
+        }
+        else{
+            window.location.href = './';
+        }
+    }
     reloadData()
     refreshList()
 };
@@ -125,6 +136,17 @@ function refreshList(){
     }
 }
 
+function hash(string) {
+    const utf8 = new TextEncoder().encode(string);
+    return crypto.subtle.digest('SHA-256', utf8).then((hashBuffer) => {
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray
+        .map((bytes) => bytes.toString(16).padStart(2, '0'))
+        .join('');
+      return hashHex;
+    });
+  }
+
 function deleteUser() {
     console.log(lastSelectedButton)
     // add your delete logic here
@@ -145,15 +167,48 @@ function startDeleteUser(selectedButton){
     // opened user delete menu
 }
 
-function login(){
+
+function login() {
+    var alertElement = document.getElementById('loginAlert');
+    alertElement.classList.add('d-none');
     var loginForm = document.forms["login-form"];
-    var username = loginForm.elements["username"].value;
-    var password = loginForm.elements["password"].value;
-    console.log(username)
-    console.log(password)
+    var username = loginForm.elements["loginUsername"].value;
+    var password = loginForm.elements["loginPassword"].value;
+  
+    // Hash the username and password
+    hash(username + password).then((hashedCredentials) => {
+      // Send the hashed credentials to the server
+      fetch("/api/dash/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          hash: hashedCredentials,
+        }),
+      })
+        .then((response) => {
+            console.log(response)
+            if (response.status == 200){
+                response.json().then( data => {
+                    console.log("Received response from server: ", data);
+                    // Set the session variables
+                    sessionStorage.setItem("logintoken", data.token);
+                    sessionStorage.setItem("loggedIn", true);
+                    $("#loginModalBackdrop").modal("hide");
+                })
+            }else if (response.status == 401){
+                // The user's data is wrong
+                sessionStorage.removeItem("logintoken");
+                sessionStorage.setItem("loggedIn", false);
+                alertElement.classList.remove('d-none');
+            }
+        })
+        .catch((error) => {
+          console.error("Error occurred during login: ", error);
+        });
+    });
 }
-
-
 
 
 setInterval(changeAlertText, 5000);
