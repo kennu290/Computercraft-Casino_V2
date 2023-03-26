@@ -6,9 +6,9 @@ var path = require('path');
 const { v4: uuidv4 } = require('uuid');
 var application = express();
 
-var userCount = 5;
-var winCount = 50;
-var loseCount = 50;
+var userCount = 0;
+var winCount = 0;
+var loseCount = 0;
 var alerts = [];
 var users = []
 
@@ -17,7 +17,8 @@ application.use(bodyParser.json()); // add this line to parse JSON request body
 
 application.engine('handlebars', handlebars({ defaultLayout: 'main' }));
 
-application.get('/api/data', function(req, res) {
+
+application.get('/api/data/overview', function(req, res) {
   var data = {
     userCount: userCount,
     wins: winCount,
@@ -27,17 +28,41 @@ application.get('/api/data', function(req, res) {
   res.status(200).send(data);
 });
 
+application.get('/api/data/users', function(req, res) {
+  // Get size and position from query parameters, with default values if not provided
+  const size = parseInt(req.query.size) || 10;
+  const position = parseInt(req.query.position) || 0;
+
+  const data = users.slice(position, position + (size + 1)).map(user => {
+    return {
+      token: user.token,
+      arrayPosition: user.arrayPosition
+    };
+  });
+
+  res.status(200).send(data);
+});
+
+
+
 application.post('/api/user', function(req, res) {
   console.log("Received user creation!");
   newUserUuid = uuidv4();
   var user = {
-    Token: newUserUuid,
+    token: newUserUuid,
     balance: 0,
+    totalWins: 0,
+    totalLose: 0,
+    isAdmin: false,
+    isDisabled: false,
+    playedGames: [],
+    createdAt: new Date(),
+    lastGameAt: null,
     arrayPosition: users.length
-  };
+  };  
   res.status(200).send({ data: newUserUuid + "." + users.length });
   users[users.length] = user
-  userCount++;
+  userCount = users.length;
   console.log(users)
 });
 

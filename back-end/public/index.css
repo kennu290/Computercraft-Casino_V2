@@ -4,6 +4,11 @@ body {
   background-color: #353535;
 }
 
+:root {
+  --bs-list-group-action-hover-bg: #494949; /* Set the hover background color to gray */
+}
+
+
 p {
   color: white;
 }
@@ -89,4 +94,32 @@ p {
   display: inline-block;
   margin: 10px 0px;
   border-radius: 0px;
+}
+
+.list-group-item::marker {
+  content: none;
+}
+
+.list-group-item {
+  border-radius: 0 !important;
+  background-color: #494949; /* Gray background color */
+  color: #fff; /* Set the text color to white */
+}
+
+ul.list-group li {
+  background-color: #494949;
+  padding: 0;
+}
+
+/* Override Bootstrap's default focus and active styles */
+.list-group-item:focus, .list-group-item:hover, .list-group-item:active {
+  background-color: #494949;
+  color: #fff;
+  text-decoration: none;
+  border-color: #ccc;
+}
+
+#iconButton{
+  background-color: #494949;
+  border: 0;
 }
