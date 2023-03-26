@@ -2,9 +2,11 @@ var userCount;
 var wins;
 var losses;
 var winRate;
-var alerts;
+var alerts = [];
 var currentAlertIndex = 1;
+var url = "http://" + window.location.hostname
 var lastSelectedButton
+var userFullData
 
 window.onload = function() {
     console.log("Site loaded!")
@@ -28,7 +30,7 @@ window.onload = function() {
 
 function reloadData(){
     //console.log(`${new Date().toLocaleString()} - Running info update!`);
-    fetch("/api/data/overview")
+    fetch(url + "/api/data/overview")
     .then(response => response.json())
     .then(data => {
         userCount = data.userCount
@@ -100,7 +102,9 @@ function settings(){
 function refreshList(){
     console.log("Refresh of list requested.")
     if (window.location.pathname == "/users.html"){
-        fetch("/api/data/users?size=" + Number.MAX_SAFE_INTEGER)
+        const userListGroup = document.getElementById('userListGroup');
+        userListGroup.innerHTML = "";
+        fetch(url + "/api/data/users?size=" + Number.MAX_SAFE_INTEGER)
         .then(response => response.json())
         .then(data => {
             console.log(data)
@@ -127,39 +131,97 @@ function refreshList(){
                   </div>
                 </div>
               </li>`
-                const userListGroup = document.getElementById('userListGroup');
-                userListGroup.innerHTML += htmlString;
+              userListGroup.innerHTML += htmlString;
             });
-
         })
         .catch(error => console.error(error));
     }
 }
 
-function hash(string) {
-    const utf8 = new TextEncoder().encode(string);
-    return crypto.subtle.digest('SHA-256', utf8).then((hashBuffer) => {
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray
-        .map((bytes) => bytes.toString(16).padStart(2, '0'))
-        .join('');
-      return hashHex;
-    });
-  }
+function addMachine(){
+    console.log("New machine")
+    //Logic for adding machine
+}
 
 function deleteUser() {
     console.log(lastSelectedButton)
     // add your delete logic here
+    fetch(url + '/api/user/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: lastSelectedButton,
+          hash: sessionStorage.getItem('logintoken')
+        })
+      })
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error('Failed to delete user');
+        }
+      })
+      .then(data => {
+        console.log("Successfully deleted user!")
+        console.log(data);
+        refreshList()
+      })
+      .catch(error => {
+        console.log("Cannot delete user.")
+        console.error(error);
+        // handle error here
+      });
   }
 
-function editUser() {
-    console.log(lastSelectedButton)
-    // add your edit logic here
+
+  function editUser() {
+    userFullData.balance = document.getElementById("balance").value;
+    userFullData.totalWins = document.getElementById("totalWins").value;
+    userFullData.totalLose = document.getElementById("totalLose").value;
+    userFullData.isAdmin = document.getElementById("isAdmin").checked;
+    userFullData.isDisabled = document.getElementById("isDisabled").checked;
+    userFullData.createdAt = document.getElementById("createdAt").value;
+    userFullData.lastGameAt = document.getElementById("lastGameAt").value;
+    console.log(JSON.stringify(userFullData));
+  
+    fetch(url + '/api/user/update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        data: JSON.stringify(userFullData),
+        hash: sessionStorage.getItem('logintoken')
+      })
+    })
+    .then(response => response.json())
+    .then(data => console.log(data))
+    .catch(error => console.error(error));
 }
+
 
 function startEditUser(selectedButton){
     lastSelectedButton = selectedButton
-    // opened user edit menu
+    fetch(url + "/api/user/getUser?id=" + selectedButton + "&hash=" + sessionStorage.getItem('logintoken'))
+    .then(response => response.json())
+    .then(data => {
+        userFullData = data
+        console.log(data)
+        const createdAtDate = new Date(data.createdAt);
+        const lastGameDate = new Date(data.lastGameAt);
+        document.getElementById("balance").value = data.balance
+        document.getElementById("totalWins").value = data.totalWins
+        document.getElementById("totalLose").value = data.totalLose
+        document.getElementById("createdAt").value = createdAtDate.toISOString().slice(0, 16);
+        document.getElementById("lastGameAt").value = lastGameDate.toISOString().slice(0, 16);
+        document.getElementById("isAdmin").checked = data.isAdmin
+        document.getElementById("isDisabled").checked = data.isDisabled
+    })
+    .catch(error => {
+      console.error(error)
+    });
 }
 
 function startDeleteUser(selectedButton){
@@ -169,47 +231,84 @@ function startDeleteUser(selectedButton){
 
 
 function login() {
-    var alertElement = document.getElementById('loginAlert');
-    alertElement.classList.add('d-none');
-    var loginForm = document.forms["login-form"];
-    var username = loginForm.elements["loginUsername"].value;
-    var password = loginForm.elements["loginPassword"].value;
+  var alertElement = document.getElementById('loginAlert');
+  alertElement.classList.add('d-none');
+  var loginForm = document.forms["login-form"];
+  var username = loginForm.elements["loginUsername"].value;
+  var password = loginForm.elements["loginPassword"].value;
   
-    // Hash the username and password
-    hash(username + password).then((hashedCredentials) => {
-      // Send the hashed credentials to the server
-      fetch("/api/dash/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          hash: hashedCredentials,
-        }),
+  // base64 the username and password
+  const basedCredentials = btoa(username + password);
+
+  // Send the base64's credentials to the server
+  fetch(url + "/api/dash/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      hash: basedCredentials,
+    }),
+  })
+  .then((response) => {
+    console.log(response)
+    if (response.status == 200){
+      response.json().then( data => {
+        console.log("Received response from server: ", data);
+        // Set the session variables
+        sessionStorage.setItem("logintoken", data.token);
+        sessionStorage.setItem("loggedIn", true);
+        $("#loginModalBackdrop").modal("hide");
       })
-        .then((response) => {
-            console.log(response)
-            if (response.status == 200){
-                response.json().then( data => {
-                    console.log("Received response from server: ", data);
-                    // Set the session variables
-                    sessionStorage.setItem("logintoken", data.token);
-                    sessionStorage.setItem("loggedIn", true);
-                    $("#loginModalBackdrop").modal("hide");
-                })
-            }else if (response.status == 401){
-                // The user's data is wrong
-                sessionStorage.removeItem("logintoken");
-                sessionStorage.setItem("loggedIn", false);
-                alertElement.classList.remove('d-none');
-            }
-        })
-        .catch((error) => {
-          console.error("Error occurred during login: ", error);
-        });
-    });
+    }else if (response.status == 401){
+      // The user's hash is wrong
+      sessionStorage.removeItem("logintoken");
+      sessionStorage.setItem("loggedIn", false);
+      alertElement.classList.remove('d-none');
+    }
+  })
+  .catch((error) => {
+    console.error("Error occurred during login: ", error);
+  });
 }
 
+function pairNewMachine() {
+  const dropDown = document.getElementById("machinePairingType");
+  const alertElement = document.getElementById("pairingAlert");
+
+  fetch(url + '/api/machine/pair', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      data: JSON.stringify(dropDown.value),
+      hash: sessionStorage.getItem('logintoken')
+    })
+  })
+  .then(response => {
+    if (response.ok) {
+      alertElement.classList.remove('d-none');
+      alertElement.classList.add('alert-success');
+      alertElement.textContent = `Please now continue on machine! Pairing will timeout in 3 minutes.`;
+      setTimeout(() => {
+        alertElement.classList.add('d-none');
+        alertElement.classList.remove('alert-success');
+      }, 3000);
+    } else {
+      alertElement.classList.remove('d-none');
+      alertElement.classList.add('alert-danger');
+      alertElement.textContent = `Error: ${response.status} - ${response.statusText}`;
+      setTimeout(() => {
+        alertElement.classList.add('d-none');
+        alertElement.classList.remove('alert-danger');
+      }, 3000);
+    }
+    return response.json();
+  })
+  .then(data => console.log(data))
+  .catch(error => console.error(error));
+}
 
 setInterval(changeAlertText, 5000);
 setInterval(reloadData, 30000);

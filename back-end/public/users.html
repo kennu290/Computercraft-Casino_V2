@@ -29,11 +29,11 @@
           <div class="row g-3 text-center justify-content-center">
             <div class="col-6">              
               <div class="input-group mb-3">
-                <input type="text" class="form-control mt-3" id="filterBar" placeholder="Insert text and then press Enter...">
+                <input type="text" class="form-control mt-3" id="filterBar" placeholder="N/A">
               </div>
             </div>
             <div class="col-2">
-              <button onclick="refreshList()" class="btn btn-primary mt-3" id="RefreshDataBtn">Refresh</button>
+              <button onclick="refreshList()" class="btn btn-primary mt-3" id="GeneralBtn">Refresh</button>
             </div>
           </div>
           
@@ -46,7 +46,36 @@
                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                  <button>helo</button>
+                  <form>
+                    <div class="form-group">
+                      <label for="balance">Balance</label>
+                      <input type="number" class="form-control" id="balance" placeholder="Enter balance">
+                    </div>
+                    <div class="form-group">
+                      <label for="totalWins">Total Wins</label>
+                      <input type="number" class="form-control" id="totalWins" placeholder="Enter total wins *Not counted in overview*">
+                    </div>
+                    <div class="form-group">
+                      <label for="totalLose">Total Losses</label>
+                      <input type="number" class="form-control" id="totalLose" placeholder="Enter total losses *Not counted in overview*">
+                    </div>
+                    <div class="form-group">
+                      <label for="createdAt">Created At</label>
+                      <input type="datetime-local" class="form-control" id="createdAt" readonly>
+                    </div>
+                    <div class="form-group">
+                      <label for="lastGameAt">Last Game At</label>
+                      <input type="datetime-local" class="form-control" id="lastGameAt" readonly>
+                    </div>
+                    <div class="form-group">
+                      <input type="checkbox" class="form-check-input" id="isAdmin">
+                      <label class="form-check-label" for="isAdmin">Is Admin</label>
+                    </div>
+                    <div class="form-group">
+                      <input type="checkbox" class="form-check-input" id="isDisabled">
+                      <label class="form-check-label" for="isDisabled">Is Disabled</label>
+                    </div>
+                  </form>          
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
