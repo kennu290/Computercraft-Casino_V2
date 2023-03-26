@@ -4,13 +4,23 @@ var handlebars = require('express3-handlebars');
 var path = require('path');
 var application = express();
 
+var userCount = 5
+var winCount = 50
+var loseCount = 50
+var alerts = []
 
 application.use(express.static(path.join(__dirname, 'public')));
 
 application.engine('handlebars', handlebars({ defaultLayout: 'main' }));
 
-application.get('/', function(req, res){
-    res.render('index.html', { someProp: 3 });
+application.get('/api/data', function(req, res) {
+    var data = {
+      userCount: userCount,
+      wins: winCount,
+      losses: loseCount,
+      alerts: alerts
+    };
+    res.status(200).send(data);
 });
 
 application.listen(port);
