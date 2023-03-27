@@ -25,6 +25,7 @@ application.engine('handlebars', handlebars({ defaultLayout: 'main' }));
 
 
 function startMachinePairing() {
+  console.log("Machine pairing started..")
   machinePairing = true;
   // Set a timer to turn off machine pairing after 3 minutes of inactivity
   pairingTimer = setTimeout(() => {
@@ -33,6 +34,7 @@ function startMachinePairing() {
 }
 
 function endMachinePairing() {
+  console.log("Machine pairing ended..")
   machinePairing = false;
   clearTimeout(pairingTimer);
   pairingTimer = null;
