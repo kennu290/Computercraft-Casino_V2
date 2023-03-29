@@ -17,11 +17,22 @@ var machines = [];
 let pairingTimer = null;
 var machinePairing = false;
 
+restoreData()
 
 application.use(express.static(path.join(__dirname, 'public')));
 application.use(bodyParser.json()); // add this line to parse JSON request body
 
 application.engine('handlebars', handlebars({ defaultLayout: 'main' }));
+
+
+function findMachineByToken(token) {
+  for (let i = 0; i < machines.length; i++) {
+    if (machines[i].token === token) {
+      return machines[i];
+    }
+  }
+  return null; // return null if the token was not found in the array
+}
 
 
 function startMachinePairing() {
@@ -57,6 +68,51 @@ function verifyHash(hash){
   }
 }
 
+function saveData() {
+  const data = { userCount, winCount, loseCount, alerts, users, machines };
+
+  // Convert the data object to a JSON string
+  const dataString = JSON.stringify(data);
+
+  // Save the data to a file
+  fs.writeFile('data.json', dataString, (err) => {
+    if (err) {
+      console.error(err);
+      return;
+    }else{
+      console.log('Data saved to file!');
+    }
+  });
+}
+
+
+function restoreData() {
+  // Read the data from the file
+  fs.readFile('data.json', (err, data) => {
+    if (err) {
+      if (err.message.includes('ENOENT')) {
+        return;
+      }
+      console.error(err);
+      return;
+    }
+    
+    // Parse the JSON string into an object
+    const savedData = JSON.parse(data);
+
+    // Retrieve the saved values
+    userCount = savedData.userCount;
+    winCount = savedData.winCount;
+    loseCount = savedData.loseCount;
+
+    alerts = savedData.alerts;
+    users = savedData.users;
+    machines = savedData.machines;
+    console.log("Data restored!")
+  });
+}
+
+
 application.get('/api/data/overview', function(req, res) {
   var data = {
     userCount: userCount,
@@ -84,13 +140,50 @@ application.get('/api/data/users', function(req, res) {
 });
 
 
+application.get('/api/data/machines', function(req, res) {
+  // Get size and position from query parameters, with default values if not provided
+  const size = parseInt(req.query.size) || 10;
+  const position = parseInt(req.query.position) || 0;
+
+  const data = machines.slice(position, position + (size + 1)).map(machine => {
+    return {
+      token: machine.token,
+      arrayPosition: machine.arrayPosition
+    };
+  });
+
+  res.status(200).send(data);
+});
+
+
+
+application.post('/api/user/exitGame', function(req, res) {
+  const token = req.body.token;
+  const id = req.body.id;
+  const data = req.body.data;
+  // Check if machine exists and token is valid
+  const machine = findMachineByToken(token);
+  if (machine) {
+    // Update machine state and send response
+    console.log(data)
+    res.status(200).send();
+  } else {
+    res.status(401).send("401 Unauthorized");
+  }
+});
+
+
+
+
 application.get('/api/user/getUser', function(req, res) {
   // Get size and position from query parameters, with default values if not provided
   const id = parseInt(req.query.id);
   const hash = req.query.hash;
-
-  if (verifyHash(hash)){
+  if (verifyHash(hash) || findMachineByToken(hash)){
     if (users[id] !== undefined){
+      if (findMachineByToken(hash)){
+        users[id].lastGameAt = new Date().toISOString().slice(0, 16);
+      }
       const data = users[id]
       res.status(200).send(JSON.stringify(data));
     }else{
@@ -116,51 +209,80 @@ application.post('/api/dash/login', function(req, res) {
   }
 });
 
-application.post('/api/user/delete', function(req, res) {
+application.delete('/api/user/delete/:id', function(req, res) {
   console.log("Received user delete");
-  const { id, hash } = req.body; // Retrieve the hash and id value from the request body
-  if (verifyHash(hash))
-  {
-    if (users[id] !== undefined){
-      const deletedUser = users[id];
-      const lastUser = users[users.length - 1];
-      users[id] = lastUser;
-      lastUser.arrayPosition = Number(id);
-      users.pop();
-      var data = {
-        deletedId: deletedUser,
-      };  
-      userCount--
-      res.status(200).send(data);
-    } else {
-      res.status(404).send({})
-    }
+  const { id } = req.params; // Retrieve the id value from the request params
+  const { hash } = req.body; // Retrieve the hash value from the request body
+  
+  // Check if the hash is valid
+  if (!verifyHash(hash)) {
+    return res.status(401).send("401 Unauthorized");
+  }
+  
+  // Check if the user exists
+  if (users[id] === undefined) {
+    return res.status(404).send({});
+  }
+
+  const deletedUser = users[id];
+  const lastUser = users[users.length - 1];
+  
+  // Swap the deleted user with the last user in the array
+  users[id] = lastUser;
+  lastUser.arrayPosition = Number(id);
+  users.pop();
+  
+  const data = {
+    deletedId: deletedUser,
+  };
+  
+  userCount--;
+  return res.status(200).send(data);
+});
+
+
+
+application.post('/api/alerts', function(req, res) {
+  console.log("Received an alert:");
+  const { alert } = req.body; // Retrieve the alert from the request body
+  
+  if (!alert) {
+    res.status(400).send('Invalid request: missing alert data');
   } else {
-    res.status(401).send("401 Unauthorized")
+    console.log(alert);
+    alerts.push(alert);
+    res.status(200).send({});
   }
 });
 
-application.post('/api/alerts', function(req, res) {
-  console.warn("Received an alert:");
-  const { alert } = req.body; // Retrieve the alert from the request body
-  console.warn(alert)
-  alerts.push(alert)
-  res.status(200).send({});
-});
 
-application.post('/api/user/update', function(req, res) {
+application.put('/api/user/update', function(req, res) {
   console.warn("Received a user update:");
 
   const hash = req.body.hash;
   var data = req.body.data;
-  data = JSON.parse(data)
-  if (verifyHash(hash)){
-    users[data.arrayPosition] = data;
-    res.status(200).send({});
-  }else{
-    res.status(401).send("401 Unauthorized")
+  data = JSON.parse(data);
+
+  if (!hash) {
+    return res.status(400).send('Hash is missing.');
   }
+
+  if (!data) {
+    return res.status(400).send('Data is missing.');
+  }
+
+  if (typeof data.arrayPosition !== 'number' || data.arrayPosition < 0 || data.arrayPosition >= users.length) {
+    return res.status(400).send('Invalid arrayPosition.');
+  }
+
+  if (!verifyHash(hash)) {
+    return res.status(401).send('Unauthorized.');
+  }
+
+  users[data.arrayPosition] = data;
+  res.status(200).send({});
 });
+
 
 application.post('/api/user/create', function(req, res) {
   console.log("Received user creation!");
@@ -189,7 +311,7 @@ application.post('/api/machine/create', function(req, res) {
     endMachinePairing()
     newMachineUuid = uuidv4();
     var machine = {
-      token: newMachineUuid,
+      token: newMachineUuid + "." + "M",
       machineType: machineType,
       arrayPosition: machines.length
     };  
@@ -217,6 +339,9 @@ application.post('/api/machine/pair', function(req, res) {
   }
 });
 
+
+// Save every 2 minutes
+setInterval(saveData, 120000); 
 
 application.listen(port);
 console.log("Running site on port " + port);

@@ -13,6 +13,8 @@ window.onload = function() {
     //Checking login status.
     if (sessionStorage.getItem('loggedIn') !== 'true') {
         if (window.location.pathname == '/'){
+            var alertElement = document.getElementById('loginAlert');
+            alertElement.classList.add('d-none');
             var logInModal = new bootstrap.Modal(document.getElementById('loginModalBackdrop'), {
             keyboard: false
             });
@@ -107,7 +109,6 @@ function refreshList(){
         fetch(url + "/api/data/users?size=" + Number.MAX_SAFE_INTEGER)
         .then(response => response.json())
         .then(data => {
-            console.log(data)
             data.forEach(element => {
                 var htmlString = `<li class="list-group-item list-group-item-action border-0 mb-2">
                 <div class="d-flex justify-content-between align-items-center py-2">
@@ -134,52 +135,82 @@ function refreshList(){
               userListGroup.innerHTML += htmlString;
             });
         })
+      }
+
+        if (window.location.pathname == "/machines.html"        ){
+          const MachineListGroup = document.getElementById('MachineListGroup');
+          MachineListGroup.innerHTML = "";
+          fetch(url + "/api/data/machines?size=" + Number.MAX_SAFE_INTEGER)
+          .then(response => response.json())
+          .then(data => {
+              data.forEach(element => {
+                  var htmlString = `<li class="list-group-item list-group-item-action border-0 mb-2">
+                  <div class="d-flex justify-content-between align-items-center py-2">
+                    <h4 class="px-3">${element.token}</h4>
+                    <div>
+                      <i class="icon-edit">
+                        <button type="button" class="btn btn-primary" id="iconButton" data-bs-toggle="modal" data-bs-target="#EditModal" onclick="startEditMachine('${element.arrayPosition}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                          <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                          <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                        </svg>
+                        </button>
+                      </i>
+                      <i class="icon-trash mx-4">
+                        <button type="button" class="btn btn-primary" id="iconButton" data-bs-toggle="modal" data-bs-target="#DeleteModal" onclick="startDeleteMachine('${element.arrayPosition}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                          <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                        </svg>
+                        </button>
+                      </i>
+                    </div>
+                  </div>
+                </li>`
+                MachineListGroup.innerHTML += htmlString;
+              });
+          })
         .catch(error => console.error(error));
+        
     }
 }
 
-function addMachine(){
-    console.log("New machine")
-    //Logic for adding machine
-}
 
 function deleteUser() {
-    console.log(lastSelectedButton)
-    // add your delete logic here
-    fetch(url + '/api/user/delete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          id: lastSelectedButton,
-          hash: sessionStorage.getItem('logintoken')
-        })
-      })
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          throw new Error('Failed to delete user');
-        }
-      })
-      .then(data => {
-        console.log("Successfully deleted user!")
-        console.log(data);
-        refreshList()
-      })
-      .catch(error => {
-        console.log("Cannot delete user.")
-        console.error(error);
-        // handle error here
-      });
-  }
+  console.log(lastSelectedButton);
+  fetch(url + '/api/user/delete/' + lastSelectedButton, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      hash: sessionStorage.getItem('logintoken')
+    })
+  })
+  .then(response => {
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error('Failed to delete user');
+    }
+  })
+  .then(data => {
+    console.log("Successfully deleted user!");
+    console.log(data);
+    refreshList();
+  })
+  .catch(error => {
+    console.log("Cannot delete user.");
+    console.error(error);
+    // handle error here
+  });
+}
+
 
 
   function editUser() {
-    userFullData.balance = document.getElementById("balance").value;
-    userFullData.totalWins = document.getElementById("totalWins").value;
-    userFullData.totalLose = document.getElementById("totalLose").value;
+    userFullData.balance = parseInt(document.getElementById("balance").value);
+    userFullData.totalWins = parseInt(document.getElementById("totalWins").value);
+    userFullData.totalLose = parseInt(document.getElementById("totalLose").value);
     userFullData.isAdmin = document.getElementById("isAdmin").checked;
     userFullData.isDisabled = document.getElementById("isDisabled").checked;
     userFullData.createdAt = document.getElementById("createdAt").value;
@@ -187,7 +218,7 @@ function deleteUser() {
     console.log(JSON.stringify(userFullData));
   
     fetch(url + '/api/user/update', {
-      method: 'POST',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -199,7 +230,7 @@ function deleteUser() {
     .then(response => response.json())
     .then(data => console.log(data))
     .catch(error => console.error(error));
-}
+  }  
 
 
 function startEditUser(selectedButton){
@@ -312,4 +343,5 @@ function pairNewMachine() {
 
 setInterval(changeAlertText, 5000);
 setInterval(reloadData, 30000);
+setInterval(refreshList, 30000);
 console.log("Intervals on!")
