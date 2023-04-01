@@ -24,7 +24,6 @@ function main()
     for key,value in pairs(files) do
         fs.delete("./disk/" .. files[key])
     end
-    diskDrive.setDiskLabel("Casino card")
     --make http request to server to create new account
     local data = "{}"
     local headers = {["Content-Type"] = "application/json"}
@@ -39,6 +38,7 @@ function main()
         openFile = fs.open("disk/casinoData", "w")
         openFile.write(obj.data)
         openFile.close()
+        diskDrive.setDiskLabel("Casino card ID: ".. string.sub(obj.data, string.find(obj.data, "%.") + 1))
         diskDrive.ejectDisk()
         main()
     else

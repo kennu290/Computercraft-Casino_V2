@@ -206,6 +206,36 @@ function deleteUser() {
 }
 
 
+function deleteMachine() {
+  console.log(lastSelectedButton);
+  fetch(url + '/api/machine/delete/' + lastSelectedButton, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      hash: sessionStorage.getItem('logintoken')
+    })
+  })
+  .then(response => {
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error('Failed to delete machine');
+    }
+  })
+  .then(data => {
+    console.log("Successfully deleted machine!");
+    console.log(data);
+    refreshList();
+  })
+  .catch(error => {
+    console.log("Cannot delete machine.");
+    console.error(error);
+    // handle error here
+  });
+}
+
 
   function editUser() {
     userFullData.balance = parseInt(document.getElementById("balance").value);
@@ -260,6 +290,10 @@ function startDeleteUser(selectedButton){
     // opened user delete menu
 }
 
+function startDeleteMachine(selectedButton){
+  lastSelectedButton = selectedButton
+  // opened user delete menu
+}
 
 function login() {
   var alertElement = document.getElementById('loginAlert');

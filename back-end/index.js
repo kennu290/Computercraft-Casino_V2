@@ -158,15 +158,19 @@ application.get('/api/data/machines', function(req, res) {
 
 
 application.post('/api/user/exitGame', function(req, res) {
-  const token = req.body.token;
+  const machineToken = req.body.machineToken;
   const id = req.body.id;
+  const machineType = req.body.machineType
   const data = req.body.data;
   // Check if machine exists and token is valid
-  const machine = findMachineByToken(token);
+  const machine = findMachineByToken(machineToken);
   if (machine) {
-    // Update machine state and send response
-    console.log(data)
-    res.status(200).send();
+    if (id == data.arrayPosition){
+      // Update machine state and send response
+      console.log("Game ended for player: " + data.token)
+      console.log(req.body)
+      res.status(200).send();
+    }
   } else {
     res.status(401).send("401 Unauthorized");
   }
@@ -240,6 +244,37 @@ application.delete('/api/user/delete/:id', function(req, res) {
   return res.status(200).send(data);
 });
 
+
+application.delete('/api/machine/delete/:id', function(req, res) {
+  console.log("Received machine delete");
+  const { id } = req.params; // Retrieve the id value from the request params
+  const { hash } = req.body; // Retrieve the hash value from the request body
+  
+  // Check if the hash is valid
+  if (!verifyHash(hash)) {
+    return res.status(401).send("401 Unauthorized");
+  }
+  
+  // Check if the user exists
+  if (users[id] === undefined) {
+    return res.status(404).send({});
+  }
+
+  const deletedMachine = machines[id];
+  const lastMachine = machines[machines.length - 1];
+  
+  // Swap the deleted machine with the last machine in the array
+  machines[id] = lastMachine;
+  lastMachine.arrayPosition = Number(id);
+  machines.pop();
+  
+  const data = {
+    deletedId: deletedMachine,
+  };
+  
+  userCount--;
+  return res.status(200).send(data);
+});
 
 
 application.post('/api/alerts', function(req, res) {
@@ -338,6 +373,26 @@ application.post('/api/machine/pair', function(req, res) {
     res.status(401).send("401 Unauthorized")
   }
 });
+
+application.get('/api/data/machines', function(req, res) {
+  // Get size and position from query parameters, with default values if not provided
+  const size = parseInt(req.query.size) || 10;
+  const position = parseInt(req.query.position) || 0;
+
+  const data = machines.slice(position, position + (size + 1)).map(machine => {
+    return {
+      token: machine.token,
+      arrayPosition: machine.arrayPosition
+    };
+  });
+
+  res.status(200).send(data);
+});
+
+application.get('/api/getStatus', function(req, res) {
+  res.status(200).send("200 OK");
+});
+
 
 
 // Save every 2 minutes
