@@ -14,6 +14,7 @@ var loseCount = 0;
 var alerts = [];
 var users = [];
 var machines = [];
+var activeGames = [];
 let pairingTimer = null;
 var machinePairing = false;
 
@@ -24,6 +25,17 @@ application.use(bodyParser.json()); // add this line to parse JSON request body
 
 application.engine('handlebars', handlebars({ defaultLayout: 'main' }));
 
+function generateCard(gameType) {
+  if (gameType === "blackjack") {
+    const value = Math.floor(Math.random() * 11) + 1;
+    return value === 1 || value === 11 ? "Ace" : value <= 10 ? value : 10;
+  //} else if (gameType === "poker") {
+    // Generate a card for the game of Poker
+  } else {
+    throw new Error("Invalid game type specified");
+  }
+}
+
 
 function findMachineByToken(token) {
   for (let i = 0; i < machines.length; i++) {
@@ -32,6 +44,27 @@ function findMachineByToken(token) {
     }
   }
   return null; // return null if the token was not found in the array
+}
+
+
+function findUserByToken(token) {
+  for (let i = 0; i < users.length; i++) {
+    if (users[i].token === token) {
+      return users[i];
+    }
+  }
+  return null; // return null if the token was not found in the array
+}
+
+
+function findGameByUserToken(token) {
+  for (let i = 0; i < activeGames.length; i++) {
+    const game = activeGames[i];
+    if (game.userid === token) {
+      return game;
+    }
+  }
+  return null; // return null if the user doesn't have an active blackjack game
 }
 
 
@@ -165,7 +198,7 @@ application.post('/api/user/exitGame', function(req, res) {
   // Check if machine exists and token is valid
   const machine = findMachineByToken(machineToken);
   if (machine) {
-    if (id == data.arrayPosition){
+    if (id === data.arrayPosition){
       // Update machine state and send response
       console.log("Game ended for player: " + data.token)
       console.log(req.body)
@@ -373,6 +406,75 @@ application.post('/api/machine/pair', function(req, res) {
     res.status(401).send("401 Unauthorized")
   }
 });
+
+
+//Blackjack game endpoints
+
+application.post('/api/machine/blackjack/start', function(req, res) {
+  // Parse request data
+  const data = req.body;
+  const machineToken = data.machineToken;
+  const id = data.id;
+  const bet = data.bet;
+  userData = findUserByToken(id)
+
+  if (findMachineByToken(machineToken) == null){
+    res.status(401).send("401 Unauthorized");
+    console.log("Cannot create blackjack game: Unauthorized")
+    return
+  }
+  if (users[userData.arrayPosition].balance <= bet){
+    const response = {
+      success: false,
+      message: "Cannot create new game. Not enough balance."
+    };
+    console.log("Cannot create blackjack game: Insufficient balance")
+    res.status(400).json(response);
+    return
+  }
+  if (users[userData.arrayPosition] == null){
+    res.status(404).send("404 Not found");
+    return
+  }  
+  if (findGameByUserToken(id) != null){
+    const response = {
+      success: false,
+      message: "Cannot create new game. Game already started."
+    };
+    console.log("Cannot create blackjack game: Game already started")
+    res.status(400).json(response);
+    return
+  }
+
+    // Define game object
+    var game = {
+      id: uuidv4(),
+      machineid: machineToken,
+      userid: id,
+      gameType: "blackjack",
+      bet: bet,
+      dealerCards: [generateCard("blackjack").toString(), generateCard("blackjack").toString()],
+      playerCards: [generateCard("blackjack").toString(), generateCard("blackjack").toString()],
+      gameIndex: activeGames.length
+    };
+    activeGames[game.gameIndex] = game;
+
+    // Return game state
+    const response = {
+      success: true,
+      userId: game.userid,
+      machineId: game.machineid,
+      gameType: game.gameType,
+      gameId: game.id,
+      gameIndex: game.gameIndex,
+      bet: game.bet,
+      dealerCards: game.dealerCards,
+      playerCards: game.playerCards
+    };
+    console.log(response);
+    res.status(200).json(response);
+});
+
 
 application.get('/api/data/machines', function(req, res) {
   // Get size and position from query parameters, with default values if not provided

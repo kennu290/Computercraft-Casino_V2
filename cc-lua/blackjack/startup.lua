@@ -18,6 +18,44 @@ end
 os.loadAPI("apis/json")
 
 
+function startGame()
+    print("Game started with bet: ".. bet)
+    local data = '{"machineToken": "'..machineToken..'", "id": "'..userToken..'", "bet": '..bet..'}'
+    local headers = {["Content-Type"] = "application/json"}
+    local response = http.post(url.. "/api/machine/blackjack/start", data, headers)
+    if response then
+        local body = response.readAll()
+        obj = json.decode(body)
+        response.close()
+        print(body)
+        gameID = obj.gameId
+        --Checking if all the info matches up
+        if obj.machineId == machineToken and obj.gameType == "blackjack" and obj.bet == bet then
+            term.setTextColor(colors.green)
+            print("All good!")
+            term.setTextColor(colors.white)
+        else
+            print("Info mismatch")
+            local data = '{"alert": "Server-Client info mismatch"}'
+            local headers = {["Content-Type"] = "application/json"}
+            http.post(url.. "/api/alerts", data, headers)
+            start()
+        end
+    else
+        errorScreen("Game error")
+    end
+    print("Game id: ".. gameID)
+    print("Game bet: ".. bet)
+    monitor.clear()
+    local dealerCardString = table.concat(obj.dealerCards, ', ')
+    local playerCardString = table.concat(obj.playerCards, ', ')
+    drawText("Dealers cards:", 8, 4)
+    drawText(dealerCardString, 1 + ((29 - #dealerCardString) / 2), 5, colors.blue)
+
+    drawText("Player cards:", 9, 8)
+    drawText(playerCardString, 1 + ((29 - #playerCardString) / 2), 9, colors.blue)
+end
+
 function drawText(input, x, y, color)
     if color == nil then
         monitor.setTextColor(colors.white)
@@ -246,6 +284,12 @@ function start()
         end
         if (y==11 and x >= 13 and x <= 17) then
             print("Bet")
+            if bet == 0 then
+                print("Bet is 0, Cannot start game.")
+                drawText("Bet cannot be 0", 8, 14, colors.red)
+            else
+                startGame()
+            end
         end
         if (y==19 and x >= 24 and x <= 29) then
             print("User requested Exit..")
