@@ -27,10 +27,24 @@ application.engine('handlebars', handlebars({ defaultLayout: 'main' }));
 
 function generateCard(gameType) {
   if (gameType === "blackjack") {
-    const value = Math.floor(Math.random() * 11) + 1;
-    return value === 1 || value === 11 ? "Ace" : value <= 10 ? value : 10;
-  //} else if (gameType === "poker") {
-    // Generate a card for the game of Poker
+    const cards = [];
+
+    // Generate the first card
+    let value = Math.floor(Math.random() * 11) + 1;
+    cards[0] = (value === 1 || value === 11 ? "Ace" : value <= 10 ? value : 10);
+
+    // Generate the second card
+    value = Math.floor(Math.random() * 11) + 1;
+    cards[1] = (value === 1 || value === 11 ? "Ace" : value <= 10 ? value : 10);
+
+    // Adjust the values of Ace cards if needed
+    if (cards[0] === "Ace" && cards[1] !== "Ace") {
+      cards[0] = (cards[1] === 11 ? 1 : 11);
+    } else if (cards[1] === "Ace" && cards[0] !== "Ace") {
+      cards[1] = (cards[0] === 11 ? 1 : 11);
+    }
+
+    return cards;
   } else {
     throw new Error("Invalid game type specified");
   }
@@ -91,7 +105,7 @@ function verifyHash(hash){
   const base64DecodedData = hash;
   hash = Buffer.from(base64DecodedData, 'base64');
   var rehashed = crypto.createHash('sha256').update(hash).digest('hex');
-  const contents = fs.readFileSync('hash.txt', 'utf-8');
+  const contents = fs.readFileSync('./hash.txt', 'utf-8');
   // use the contents as the comparing hash value
   const hashValue = contents.trim();
   if (rehashed === hashValue){
@@ -309,7 +323,6 @@ application.delete('/api/machine/delete/:id', function(req, res) {
   return res.status(200).send(data);
 });
 
-
 application.post('/api/alerts', function(req, res) {
   console.log("Received an alert:");
   const { alert } = req.body; // Retrieve the alert from the request body
@@ -322,6 +335,7 @@ application.post('/api/alerts', function(req, res) {
     res.status(200).send({});
   }
 });
+
 
 
 application.put('/api/user/update', function(req, res) {
@@ -453,8 +467,8 @@ application.post('/api/machine/blackjack/start', function(req, res) {
       userid: id,
       gameType: "blackjack",
       bet: bet,
-      dealerCards: [generateCard("blackjack").toString(), generateCard("blackjack").toString()],
-      playerCards: [generateCard("blackjack").toString(), generateCard("blackjack").toString()],
+      dealerCards: generateCard("blackjack"),
+      playerCards: generateCard("blackjack"),
       gameIndex: activeGames.length
     };
     activeGames[game.gameIndex] = game;
