@@ -35,11 +35,12 @@ fs.access(logFilePath, fs.constants.F_OK, (err) => {
     });
   } else {
     // If the file already exists, truncate it to make it empty
-    fs.truncate(logFilePath, 0, (err) => {
-      if (err) {
-        console.error('Error truncating log.txt:', err);
-      }
-    });
+    //fs.truncate(logFilePath, 0, (err) => {
+    //  if (err) {
+    //    console.error('Error truncating log.txt:', err);
+    //  }
+    //});
+    // no.
   }
 });
 
