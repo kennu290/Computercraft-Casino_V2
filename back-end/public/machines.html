@@ -26,7 +26,6 @@
             <div class="modal-body">
               <select name="machinePairingType" id="machinePairingType">
                 <option value="Blackjack">Blackjack</option>
-                <option value="card_maker">Card maker</option>
               </select>
             </div>
             <div class="modal-footer">
@@ -44,11 +43,11 @@
       <div class="row">
         <div class="sidebar col-md-2">
           <div class="row flex-column text-center">
-            <div class="col mb-4"><button onclick="dashboard()" id="sidebar-button" class="btn btn-primary">Dashboard</button></div>
-            <div class="col mb-4"><button onclick="users()" id="sidebar-button" class="btn btn-primary">Users</button></div>
-            <div class="col mb-4"><button onclick="machines()" id="sidebar-button" class="btn btn-primary">Machines</button></div>
-            <div class="col mb-4"><button onclick="payments()" id="sidebar-button" class="btn btn-primary">Payment</button></div>
-            <div class="col mb-4"><button onclick="settings()" id="sidebar-button" class="btn btn-primary">Settings</button></div>
+            <div class="col mb-4"><button onclick="window.location.href = './'" id="sidebar-button" class="btn btn-primary">Dashboard</button></div>
+            <div class="col mb-4"><button onclick="window.location.href = './users.html'" id="sidebar-button" class="btn btn-primary">Users</button></div>
+            <div class="col mb-4"><button onclick="window.location.href = './machines.html'" id="sidebar-button" class="btn btn-primary">Machines</button></div>
+            <div class="col mb-4"><button onclick="window.location.href = './logs.html'" id="sidebar-button" class="btn btn-primary">Logs</button></div>
+            <div class="col mb-4"><button onclick="window.location.href = './settings.html'" id="sidebar-button" class="btn btn-primary">Settings</button></div>
           </div>   
         </div>
         <div class="col-md-10">
@@ -72,10 +71,13 @@
                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                  <select name="machinePairingType" id="machinePairingType">
+                  <select name="machineType" id="machineType">
                     <option value="Blackjack">Blackjack</option>
-                    <option value="card_maker">Card maker</option>
                   </select>          
+                  <div class="form-group">
+                    <input type="checkbox" class="form-check-input" id="isDisabled">
+                    <label class="form-check-label" for="isDisabled">Is Disabled</label>
+                  </div>
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -107,29 +109,6 @@
           <div class="row mt-3">
             <div class="col">
               <ul class="list-group" id="MachineListGroup">
-
-                <!--<li class="list-group-item list-group-item-action border-0 mb-2">
-                  <div class="d-flex justify-content-between align-items-center py-2">
-                    <h4 class="px-3">5c03668d-e006-48d1-b3b4-de22acf48937</h4>
-                    <div>
-                      <i class="icon-edit">
-                        <button type="button" class="btn btn-primary" id="iconButton" data-bs-toggle="modal" data-bs-target="#EditModal" onclick="startEditMachine('PLACEHOLDER-ID')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-                          <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                          <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
-                        </svg>
-                        </button>
-                      </i>
-                      <i class="icon-trash mx-4">
-                        <button type="button" class="btn btn-primary" id="iconButton" data-bs-toggle="modal" data-bs-target="#DeleteModal" onclick="startDeleteMachine('PLACEHOLDER-ID')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                          <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
-                        </svg>
-                        </button>
-                      </i>
-                    </div>
-                  </div>
-                </li>-->
                 
               </ul>
             </div>
